@@ -11,8 +11,7 @@ load_dotenv()
 from typing import Optional, List, Dict, Any
 import google.generativeai as genai
 from google.generativeai import configure as configure_genai
-from qdrant_client import QdrantClient
-from qdrant_client.http import models
+from .qdrant_rest import QdrantRestClient
 from cohere import Client as CohereClient
 import cohere
 import logging
@@ -44,7 +43,7 @@ class ConnectionManager:
         if not self.qdrant_url:
             raise ValueError("QDRANT_URL environment variable is required")
 
-        self.qdrant_client = QdrantClient(
+        self.qdrant_client = QdrantRestClient(
             url=self.qdrant_url,
             api_key=self.qdrant_api_key
         )
