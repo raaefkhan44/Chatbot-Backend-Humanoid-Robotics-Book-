@@ -24,9 +24,16 @@ app = FastAPI(
 )
 
 # Add CORS middleware
+# Allow production frontend and localhost for development
+allowed_origins = [
+    "https://humanoid-robotics-book-six.vercel.app",  # Production frontend
+    "http://localhost:3000",  # Local development
+    "http://127.0.0.1:3000",  # Local development alternative
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
