@@ -7,7 +7,6 @@
   "regions": ["iad1"],
   "functions": {
     "src/**/*.py": {
-      "runtime": "python3.11",
       "maxDuration": 60
     }
   },
