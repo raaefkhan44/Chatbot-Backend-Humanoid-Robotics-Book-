@@ -105,8 +105,11 @@ RESPONSE FORMAT:
         Execute the agent with the given message
         """
         try:
+            logger.info(f"Agent run started - Message: '{message[:50]}...', Selected text: {bool(selected_text)}")
+
             # Classify the query type
             query_type = self._classify_query(message)
+            logger.info(f"Query classified as: {query_type}")
 
             # Handle greetings
             if query_type == 'greeting':
@@ -277,15 +280,19 @@ Explain this naturally in 2 paragraphs."""
                 if len(sources) >= 3:
                     break
 
+            logger.info(f"Agent run completed successfully - Answer length: {len(answer)}, Sources: {len(sources)}")
             return {
                 "answer": answer,
                 "sources": sources,
                 "context_used": bool(context_chunks)
             }
         except Exception as e:
-            logger.error(f"Error running agent: {str(e)}")
+            logger.error(f"Error running agent: {str(e)}", exc_info=True)
+            # Return more detailed error message for debugging
+            error_detail = f"Agent error: {type(e).__name__}: {str(e)}"
+            logger.error(error_detail)
             return {
-                "answer": "I'm having trouble answering right now. Please try again.",
+                "answer": f"I'm having trouble answering right now. Please try again. (Error: {type(e).__name__})",
                 "sources": [],
                 "context_used": False
             }

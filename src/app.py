@@ -115,11 +115,23 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
 
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint with environment validation"""
+    # Check critical environment variables
+    env_status = {
+        "GEMINI_API_KEY": bool(os.getenv("GEMINI_API_KEY")),
+        "COHERE_API_KEY": bool(os.getenv("COHERE_API_KEY")),
+        "QDRANT_URL": bool(os.getenv("QDRANT_URL")),
+        "QDRANT_API_KEY": bool(os.getenv("QDRANT_API_KEY")),
+    }
+
+    all_configured = all(env_status.values())
+
     return {
-        "status": "healthy",
+        "status": "healthy" if all_configured else "degraded",
         "service": "book-rag-chatbot",
-        "environment": os.getenv("ENVIRONMENT", "development")
+        "environment": os.getenv("ENVIRONMENT", "development"),
+        "env_configured": env_status,
+        "ready": all_configured
     }
 
 @app.get("/")
