@@ -74,10 +74,13 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
     try:
         # Validate message length
         if len(request.message.strip()) < 5:
+            logger.warning(f"Message too short: {len(request.message.strip())} characters")
             raise HTTPException(status_code=400, detail="Message must be at least 5 characters long")
 
         # Use provided session_id or generate a new one
         session_id = request.session_id or f"session_{id(request)}"
+
+        logger.info(f"Chat request received - Session: {session_id}, Message length: {len(request.message)}, Has selected text: {bool(request.selected_text)}")
 
         # Get the RAG agent
         agent = get_book_rag_agent()
@@ -88,6 +91,11 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
             selected_text=request.selected_text
         )
 
+        # Validate result structure
+        if not result or "answer" not in result or "sources" not in result:
+            logger.error(f"Invalid agent result structure: {result}")
+            raise HTTPException(status_code=500, detail="Agent returned invalid response structure")
+
         # Create response
         response = ChatResponse(
             answer=result["answer"],
@@ -95,14 +103,14 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
             session_id=session_id
         )
 
-        logger.info(f"Processed chat request for session {session_id}")
+        logger.info(f"Chat response sent - Session: {session_id}, Answer length: {len(result['answer'])}, Sources count: {len(result['sources'])}")
         return response
 
     except HTTPException:
         # Re-raise HTTP exceptions
         raise
     except Exception as e:
-        logger.error(f"Error in chat endpoint: {str(e)}")
+        logger.error(f"Error in chat endpoint: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error processing chat request: {str(e)}")
 
 @app.get("/api/health")
